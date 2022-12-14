@@ -1,0 +1,82 @@
+---
+title: "UN_voting_topics"
+output: html_document
+date: "2022-12-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Transform topic data into tidy data
+
+topics <- UN_voting %>%
+  gather(topic, has_topic, me:ec) %>%
+  filter(has_topic == 1) %>%
+  mutate(topic = recode(topic,
+                        me = "Palestinian conflict",
+                        nu = "Nuclear weapons and nuclear material",
+                        di = "Arms control and disarmament",
+                        hr = "Human rights",
+                        co = "Colonialism",
+                        ec = "Economic development"))
+
+```
+
+
+```{r}
+# Clean Countrynames
+
+unique(topics$Countryname)
+
+topics$Countryname[topics$Countryname == "C\xf4te d\x92Ivoire"] <- "Cote dIvoire"
+topics$Countryname[topics$Countryname == "S\xe3o Tom\xe9 & Pr\xedncipe"] <- "Sao Tome and Principe"
+```
+
+
+```{r}
+# Plot "agreebleness" of topics
+
+by_year_topic <- topics %>%
+    group_by(year, topic) %>%
+    summarize(total = n(),
+              percent_yes = mean(vote == 1)) %>%
+    ungroup()
+
+
+ggplot(by_year_topic, aes(year, percent_yes)) +
+  geom_line() +
+  facet_wrap(~ topic)
+
+```
+
+```{r}
+# Summarize the percentage "yes" per country-year-topic
+
+by_country_year_topic <- topics %>%
+    group_by(Countryname, year, topic) %>%
+    summarize(total = n(),
+              percent_yes = mean(vote == 1)) %>%
+    ungroup()
+
+```
+
+```{r}
+# Tidy modeling by country and topic
+
+country_topic_coefficients <- by_country_year_topic %>%
+  nest(-Countryname, -topic) %>%
+  mutate(model = map(data, ~ lm(percent_yes ~ year, data = .)),
+         tidied = map(model, tidy)) %>%
+  unnest(tidied)
+
+# Filter for slope and significant observations
+
+country_topic_filtered <- country_topic_coefficients %>%
+    filter(term == "year") %>%
+    mutate(p.adjusted = p.adjust(p.value)) %>%
+    filter(p.adjusted < .05)
+
+```
+

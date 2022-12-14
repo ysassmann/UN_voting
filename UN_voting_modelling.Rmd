@@ -1,0 +1,54 @@
+---
+title: "UN_voting_modelling"
+output: html_document
+date: "2022-12-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(broom)
+library(purrr)
+```
+
+```{r}
+# Nest by country
+nest_by_country <- voting_by_country_year %>%
+  nest(-Countryname)
+```
+
+```{r}
+# Quantify trends through modelling with linear regressions finding a "best-fit-line" for each countries
+
+# Get country coefficients for each country
+country_coefficients <- voting_by_country_year %>%
+  nest(-Countryname) %>%
+  mutate(model = map(data, ~ lm(percent_yes ~ year, data = .)),
+         tidied = map(model, tidy)) %>%
+  unnest(tidied)
+
+country_coefficients
+```
+
+```{r}
+# Filter for only statistically significant trends
+
+filtered_countries <- country_coefficients %>%
+  filter(term == "year") %>%
+  mutate(p.adjusted = p.adjust(p.value)) %>%
+  filter(p.adjusted < .05)
+```
+
+
+```{r}
+# Sort for the countries increasing most quickly
+filtered_countries %>%
+    arrange(desc(estimate))
+
+# Sort for the countries decreasing most quickly
+filtered_countries %>%
+    arrange(estimate)
+```
+

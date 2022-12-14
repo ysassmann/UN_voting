@@ -1,0 +1,32 @@
+---
+title: "UN_voting_visualizations"
+output: html_document
+date: "2022-12-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Plotting a line over time
+ggplot(voting_per_year, aes(year, percent_yes)) +
+    geom_line()
+```
+```{r}
+# Plotting for countries
+
+p5_plus_voting <- voting_by_country_year %>%
+  filter(Countryname %in% c("United States of America", "United Kingdom of Great Britain and Northern Ireland",
+                            "China", "France", "Russian Federation", "India", "Germany"))
+
+ggplot(p5_plus_voting, aes(year, percent_yes, color=Countryname)) +
+  geom_line()
+
+ggplot(p5_plus_voting, aes(year, percent_yes)) +
+  geom_line() +
+  facet_wrap(~ Countryname, scales = "free_y")
+
+
+```
+
