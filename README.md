@@ -27,8 +27,6 @@ library(sf)
 library(rnaturalearth)
 ```
 
-[![UN_Logo](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/UN_emblem_blue.svg/2411px-UN_emblem_blue.svg.png "UN Logo"){align="right" width="15%"}](UN.org)
-
 # Multilateralism is Well and Alive - Evidence from the UN General Assembly Votes
 
 by Yannik Sassmann
